@@ -79,57 +79,45 @@ function readManifest() {
 // If there are no issues, "pass" should be true and "findings" empty.
 // ============================================================
 function buildPrompt(diff, manifest) {
-  return `You are a design-system QA reviewer. Your job is to decide whether a pull
-request diff complies with the design-system component manifest below.
-
-The manifest is the single source of truth. It defines the approved components,
-their approved variants and sizes, any deprecated variants, and a list of
-rules (including accessibility and responsive rules). Treat the manifest as the
-complete and only definition of what is allowed.
+  return `You are a design QA reviewer for a pull request. Your only source of truth is the component manifest (manifest.json) below. Review the diff and decide whether it passes or fails the manifest.
 
 What counts as an issue:
-- An issue is ANY line in the diff that breaks a rule in the manifest, or that
-  uses a component variant/size that is not approved (or that is explicitly
-  deprecated) per the manifest's "components" section.
-- Nothing else counts. Do NOT flag general style preferences, subjective design
-  opinions, or anything the manifest does not address. If a rule is not in the
-  manifest, it is not an issue — adding a new rule to the manifest is the only
-  way to start checking for it.
-- Only consider ADDED or MODIFIED lines in the diff (lines beginning with "+"),
-  not removed lines or unchanged context.
+- Only a violation of something written in the manifest counts. That covers every rule in "rules", "accessibilityRules", and "responsiveRules", plus the component definitions under "components" (approved imports, approvedVariants, deprecatedVariants, approvedSizes, subcomponents) and the "spacingScale".
+- If a rule list is empty, there is nothing to check for it. Do not apply general best practices, personal taste, or rules that are not in the manifest.
+- Only review lines the diff adds (lines starting with "+"). Ignore removed lines and unchanged context lines.
+- Do not report code that already complies with the manifest.
 
-How to reason:
-- Go through the manifest's rules, approvedVariants, approvedSizes,
-  deprecatedVariants, accessibilityRules, and responsiveRules one at a time.
-- For each added/modified line, check it against every applicable rule.
-- For each violation, record which specific manifest rule or constraint it
-  breaks and why.
+How to review:
+1. Go through every added line in the diff.
+2. For each line, check it against each manifest rule and component definition.
+3. Every violation is one finding. If one line breaks two rules, report two findings.
 
-Respond with ONLY valid JSON (no markdown, no code fences, no prose) in exactly
-this shape:
+Each finding needs:
+- "file": the file path from the diff header, without the "a/" or "b/" prefix.
+- "line": the line number in the new file, worked out from the hunk header (@@ -a,b +c,d @@). Give it as a string.
+- "issue": a short description of what is wrong, quoting the offending code.
+- "reasoning": the manifest rule or entry that is broken, quoted or named exactly, and the compliant fix the manifest gives (for example, the replacement variant or token).
+
+Verdict:
+- "pass" is true only if there are zero findings.
+- "pass" is false if there is at least one finding.
+
+Respond with ONLY valid JSON in exactly this shape: no markdown fences, no text before or after it.
 {
-  "pass": true or false,
+  "pass": true,
   "findings": [
-    {
-      "file": "path from the diff",
-      "line": "line number or hunk reference from the diff",
-      "issue": "short description of what is wrong",
-      "reasoning": "which specific manifest rule/constraint it violates and why"
-    }
+    { "file": "...", "line": "...", "issue": "...", "reasoning": "..." }
   ]
 }
+If there are no issues, return {"pass": true, "findings": []}.
 
-Rules for the output:
-- "pass" is true if and only if "findings" is empty (no manifest violations).
-- If there are any violations, "pass" is false and list every violation in
-  "findings".
-- Report each distinct violation as its own entry in "findings".
-
-Manifest:
+<manifest>
 ${manifest}
+</manifest>
 
-Diff:
-${diff}`;
+<diff>
+${diff}
+</diff>`;
 }
 
 // ============================================================
