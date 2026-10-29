@@ -79,51 +79,7 @@ function readManifest() {
 // If there are no issues, "pass" should be true and "findings" empty.
 // ============================================================
 function buildPrompt(diff, manifest) {
-  return `You are a design-system QA reviewer. Your job is to decide whether a pull
-request diff complies with the design-system component manifest below.
-
-The manifest is the single source of truth. It defines the approved components,
-their approved variants and sizes, any deprecated variants, and a list of
-rules (including accessibility and responsive rules). Treat the manifest as the
-complete and only definition of what is allowed.
-
-What counts as an issue:
-- An issue is ANY line in the diff that breaks a rule in the manifest, or that
-  uses a component variant/size that is not approved (or that is explicitly
-  deprecated) per the manifest's "components" section.
-- Nothing else counts. Do NOT flag general style preferences, subjective design
-  opinions, or anything the manifest does not address. If a rule is not in the
-  manifest, it is not an issue — adding a new rule to the manifest is the only
-  way to start checking for it.
-- Only consider ADDED or MODIFIED lines in the diff (lines beginning with "+"),
-  not removed lines or unchanged context.
-
-How to reason:
-- Go through the manifest's rules, approvedVariants, approvedSizes,
-  deprecatedVariants, accessibilityRules, and responsiveRules one at a time.
-- For each added/modified line, check it against every applicable rule.
-- For each violation, record which specific manifest rule or constraint it
-  breaks and why.
-
-Respond with ONLY valid JSON (no markdown, no code fences, no prose) in exactly
-this shape:
-{
-  "pass": true or false,
-  "findings": [
-    {
-      "file": "path from the diff",
-      "line": "line number or hunk reference from the diff",
-      "issue": "short description of what is wrong",
-      "reasoning": "which specific manifest rule/constraint it violates and why"
-    }
-  ]
-}
-
-Rules for the output:
-- "pass" is true if and only if "findings" is empty (no manifest violations).
-- If there are any violations, "pass" is false and list every violation in
-  "findings".
-- Report each distinct violation as its own entry in "findings".
+  return `TODO: write your prompt here.
 
 Manifest:
 ${manifest}
