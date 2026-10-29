@@ -79,13 +79,45 @@ function readManifest() {
 // If there are no issues, "pass" should be true and "findings" empty.
 // ============================================================
 function buildPrompt(diff, manifest) {
-  return `TODO: write your prompt here.
+  return `You are a design QA reviewer for a pull request. Your only source of truth is the component manifest (manifest.json) below. Review the diff and decide whether it passes or fails the manifest.
 
-Manifest:
+What counts as an issue:
+- Only a violation of something written in the manifest counts. That covers every rule in "rules", "accessibilityRules", and "responsiveRules", plus the component definitions under "components" (approved imports, approvedVariants, deprecatedVariants, approvedSizes, subcomponents) and the "spacingScale".
+- If a rule list is empty, there is nothing to check for it. Do not apply general best practices, personal taste, or rules that are not in the manifest.
+- Only review lines the diff adds (lines starting with "+"). Ignore removed lines and unchanged context lines.
+- Do not report code that already complies with the manifest.
+
+How to review:
+1. Go through every added line in the diff.
+2. For each line, check it against each manifest rule and component definition.
+3. Every violation is one finding. If one line breaks two rules, report two findings.
+
+Each finding needs:
+- "file": the file path from the diff header, without the "a/" or "b/" prefix.
+- "line": the line number in the new file, worked out from the hunk header (@@ -a,b +c,d @@). Give it as a string.
+- "issue": a short description of what is wrong, quoting the offending code.
+- "reasoning": the manifest rule or entry that is broken, quoted or named exactly, and the compliant fix the manifest gives (for example, the replacement variant or token).
+
+Verdict:
+- "pass" is true only if there are zero findings.
+- "pass" is false if there is at least one finding.
+
+Respond with ONLY valid JSON in exactly this shape: no markdown fences, no text before or after it.
+{
+  "pass": true,
+  "findings": [
+    { "file": "...", "line": "...", "issue": "...", "reasoning": "..." }
+  ]
+}
+If there are no issues, return {"pass": true, "findings": []}.
+
+<manifest>
 ${manifest}
+</manifest>
 
-Diff:
-${diff}`;
+<diff>
+${diff}
+</diff>`;
 }
 
 // ============================================================
